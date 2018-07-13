@@ -1,19 +1,19 @@
 const MidiConvert = require('midiconvert');
 const MidiSynth = require('./src/synth');
 
-MidiConvert.load("midi-files/test-1.mid", (midi) => {
-    const synth = new MidiSynth();
-    console.log(midi);
-    const track2 = midi.tracks[3]; // SOPSAX 166
-    const track6 = midi.tracks[5]; // GUITAR
-    const track8 = midi.tracks[7]; // Don Carroll
-    const track9 = midi.tracks[8]; // Houston, Texas
+// MidiConvert.load("midi-files/test-1.mid", (midi) => {
+//     const synth = new MidiSynth();
+//     console.log(midi);
+//     const track2 = midi.tracks[3]; // SOPSAX 166
+//     const track6 = midi.tracks[5]; // GUITAR
+//     const track8 = midi.tracks[7]; // Don Carroll
+//     const track9 = midi.tracks[8]; // Houston, Texas
 
-    synth.playTrack(track2);
-    synth.playTrack(track6);
-    synth.playTrack(track8);
-    synth.playTrack(track9);
-});
+//     synth.playTrack(track2);
+//     synth.playTrack(track6);
+//     synth.playTrack(track8);
+//     synth.playTrack(track9);
+// });
   
 // MidiConvert.load("midi-files/test-2.mid", (midi) => {
 //     const synth = new MidiSynth();
@@ -28,3 +28,19 @@ MidiConvert.load("midi-files/test-1.mid", (midi) => {
 //     // synth.playTrack(track5);
 //     synth.playTrack(track6);
 // });
+
+// MidiConvert.load("midi-files/test-3.mid", (midi) => {
+//     const synth = new MidiSynth();
+//     console.log(midi);
+//     for (let i = 0; i < 15; i++) {
+//         synth.playTrack(midi.tracks[i]);
+//     }
+// });
+
+MidiConvert.load("midi-files/test-5.mid", (midi) => {
+    const synth = new MidiSynth();
+    console.log(midi);
+    for (let i = 0; i < midi.tracks.length; i++) {
+        synth.playTrack(midi.tracks[i]);
+    }
+});

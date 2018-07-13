@@ -33,9 +33,10 @@ const secondsToMilliseconds = (seconds = 0) => {
     return Number((seconds * 1000).toFixed('5'))
 }
 
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
 class MidiSynth {
     constructor () {
-        this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         this.notes = {};
         this.instruments = {};
         this.instrumentMap = {
@@ -45,7 +46,6 @@ class MidiSynth {
     }
 
     createOscillator (freq) {
-        const {audioCtx} = this;
         const oscillator = audioCtx.createOscillator();
 
         oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime); // value in hertz
@@ -112,7 +112,6 @@ class MidiSynth {
 
 class Bass extends MidiSynth {
     createOscillator (freq) {
-        const {audioCtx} = this;
         const oscillator = audioCtx.createOscillator();
         
         oscillator.type = 'triangle';
@@ -132,7 +131,6 @@ class Bass extends MidiSynth {
 
 class Piano extends MidiSynth {
     createOscillator (freq) {
-        const {audioCtx} = this;
         const oscillator = audioCtx.createOscillator();
         
         oscillator.type = 'triangle';
