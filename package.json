@@ -1,0 +1,17 @@
+{
+  "name": "midi-player",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "author": "Belrestro",
+  "license": "ISC",
+  "dependencies": {
+    "midiconvert": "^0.4.7"
+  },
+  "devDependencies": {
+    "electron": "^2.0.4"
+  }
+}
