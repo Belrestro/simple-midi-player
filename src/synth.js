@@ -30,7 +30,7 @@ const freqFromNote = (note) => {
 };
 
 const secondsToMilliseconds = (seconds = 0) => {
-    return Number((seconds * 1000).toFixed('5'))
+    return Math.floor(seconds * 270);
 }
 
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -39,6 +39,12 @@ class MidiSynth {
     constructor () {
         this.notes = {};
         this.instruments = {};
+        this.timelapse = {};
+        this.tracker = {
+            endTime: 0,
+            currentTime: 0
+        };
+        this.interval = 0;
         this.instrumentMap = {
             'bass': Bass,
             'piano': Piano
@@ -52,6 +58,89 @@ class MidiSynth {
         oscillator.connect(audioCtx.destination);
         oscillator.start();
         return oscillator;
+    }
+
+    createTimelapseSegment (time) {
+        this.timelapse[time] = {
+            notesOn: [],
+            notesOff: []
+        };
+    }
+
+    timelapseSegmentExistst (time) {
+        return this.timelapse[time] !== undefined;
+    }
+
+    createTimelapse (tracks = []) {
+        this.timelapse = {};
+        let lastNote = 0;
+        tracks.forEach(track => {
+            const {notes = [], instrumentFamily, id} = track;
+            let instrument;
+
+            if (instrumentFamily in this.instrumentMap) {
+                instrument = new this.instrumentMap[instrumentFamily];
+            } else {
+                instrument = new MidiSynth();
+            }
+            this.instruments[id] = instrument;
+            notes.forEach(midiNote => {
+                const {duration, noteOn, noteOff} = midiNote;
+                const start = secondsToMilliseconds(noteOn);
+                const end = secondsToMilliseconds(noteOff);
+
+                if (!this.timelapseSegmentExistst(start)) {
+                    this.createTimelapseSegment(start);
+                }
+                if (!this.timelapseSegmentExistst(end)) {
+                    this.createTimelapseSegment(end);
+                }
+                if (lastNote < end) {
+                    lastNote = end;
+                }
+                const segmentStart = this.timelapse[start];
+                const segmentEnd = this.timelapse[end];
+
+                segmentStart.notesOn.push({
+                    midiNote,
+                    instrument
+                });
+                segmentEnd.notesOff.push({
+                    midiNote,
+                    instrument
+                });
+            });
+        });
+        this.tracker.endTime = lastNote;
+    }
+
+    play () {
+        this.interval = setInterval(() => {
+            const {currentTime, endTime} = this.tracker;
+            const currentTimelapseSegment = this.timelapse[currentTime];
+            console.log(currentTime);
+            if (currentTimelapseSegment) {
+                const {notesOn, notesOff} = currentTimelapseSegment;
+                notesOn.forEach(({instrument, midiNote}) => {
+                    const {midi, name} = midiNote;
+                    instrument.playNote(name || midi);
+                });
+                notesOff.forEach(({instrument, midiNote}) => {
+                    const {midi, name} = midiNote;
+                    instrument.stopNote(name || midi);
+                });
+            }
+
+            if (currentTime === endTime) {
+                clearInterval(this.interval);
+            } else {
+                this.tracker.currentTime += 1;
+            }
+        }, 1);
+    }
+
+    stop () {
+        clearInterval(this.interval);
     }
 
     playTrack (track) {
