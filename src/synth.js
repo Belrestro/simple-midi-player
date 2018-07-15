@@ -74,6 +74,14 @@ class MidiSynth {
 
     createTimelapse (tracks = []) {
         this.timelapse = {};
+        this.tracker = {
+            endTime: 0,
+            currentTime: 0,
+            suspendedNotes: [] 
+        };
+        this.interval = 0;
+        this.instruments = {};
+        this.notes = {};
         let lastNote = 0;
         tracks.forEach(track => {
             const {notes = [], instrumentFamily, id} = track;
@@ -116,7 +124,9 @@ class MidiSynth {
     }
 
     play () {
+        if (this.interval !== 0) return;
         const {suspendedNotes} = this.tracker;
+
         suspendedNotes.forEach(suspendedNote => {
             const {note, instrument} = suspendedNote;
             instrument.playNote(note);
@@ -147,9 +157,11 @@ class MidiSynth {
     }
 
     stop () {
+        if (this.interval === 0) return;
         const {instruments, tracker} = this;
         const {suspendedNotes} = tracker;
         const instrumentKeys = Object.keys(instruments);
+
         clearInterval(this.interval);
         instrumentKeys.forEach(key => {
             const instrument = instruments[key];
@@ -163,6 +175,8 @@ class MidiSynth {
                 });
             });
         });
+
+        this.interval = 0;
     }
 
     playTrack (track) {
