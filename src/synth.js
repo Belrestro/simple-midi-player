@@ -42,7 +42,8 @@ class MidiSynth {
         this.timelapse = {};
         this.tracker = {
             endTime: 0,
-            currentTime: 0
+            currentTime: 0,
+            suspendedNotes: []
         };
         this.interval = 0;
         this.instrumentMap = {
@@ -115,10 +116,15 @@ class MidiSynth {
     }
 
     play () {
+        const {suspendedNotes} = this.tracker;
+        suspendedNotes.forEach(suspendedNote => {
+            const {note, instrument} = suspendedNote;
+            instrument.playNote(note);
+        });
+        this.tracker.suspendedNotes = [];
         this.interval = setInterval(() => {
             const {currentTime, endTime} = this.tracker;
             const currentTimelapseSegment = this.timelapse[currentTime];
-            console.log(currentTime);
             if (currentTimelapseSegment) {
                 const {notesOn, notesOff} = currentTimelapseSegment;
                 notesOn.forEach(({instrument, midiNote}) => {
@@ -132,6 +138,7 @@ class MidiSynth {
             }
 
             if (currentTime === endTime) {
+                this.tracker.currentTime = 0;
                 clearInterval(this.interval);
             } else {
                 this.tracker.currentTime += 1;
@@ -140,7 +147,22 @@ class MidiSynth {
     }
 
     stop () {
+        const {instruments, tracker} = this;
+        const {suspendedNotes} = tracker;
+        const instrumentKeys = Object.keys(instruments);
         clearInterval(this.interval);
+        instrumentKeys.forEach(key => {
+            const instrument = instruments[key];
+            const {notes} = instrument;
+            const noteKeys = Object.keys(notes);
+            noteKeys.forEach(note => {
+                instrument.stopNote(note);
+                suspendedNotes.push({
+                    note,
+                    instrument
+                });
+            });
+        });
     }
 
     playTrack (track) {
@@ -195,6 +217,7 @@ class MidiSynth {
         const oscillator = this.notes[note];
         if (oscillator) {
             oscillator.stop();
+            delete this.notes[note];
         }
     }
 }
