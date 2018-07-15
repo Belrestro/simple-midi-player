@@ -148,8 +148,9 @@ class MidiSynth {
             }
 
             if (currentTime === endTime) {
-                this.tracker.currentTime = 0;
                 clearInterval(this.interval);
+                this.interval = 0;
+                this.tracker.currentTime = 0;
             } else {
                 this.tracker.currentTime += 1;
             }
